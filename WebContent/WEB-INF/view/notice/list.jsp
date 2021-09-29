@@ -1,19 +1,8 @@
-<%@page import="java.sql.ResultSet"%>
-<%@page import="java.sql.Statement"%>
-<%@page import="java.sql.DriverManager"%>
-<%@page import="java.sql.Connection"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
-<%
-String url = "jdbc:oracle:thin:@localhost:1521/system";
-String sql = "SELECT * FROM NOTICE";
 
-Class.forName("oracle.jdbc.driver.OracleDriver");
-Connection con = DriverManager.getConnection(url,"SYSTEM","123456");
-Statement st = con.createStatement();
-ResultSet rs = st.executeQuery(sql);	
-%>
 <!DOCTYPE html>
 <html>
 
@@ -186,19 +175,16 @@ ResultSet rs = st.executeQuery(sql);
 						</tr>
 					</thead>
 					<tbody>
-							
-					<% while(rs.next()){ %>
-					<tr>
-						<td><%=rs.getInt("ID") %></td>
-						<td class="title indent text-align-left"><a href="detail?id=<%=rs.getInt("ID") %>"><%=rs.getString("TITLE") %></a></td>
-						<td><%=rs.getString("WRITER_ID") %></td>
-						<td>
-							<%=rs.getDate("REGDATE") %>		
-						</td>
-						<td><%=rs.getInt("HIT") %></td>
-					</tr>
-					<%} %>
 					
+					<c:forEach items="${list}" var="n">
+						<tr>
+							<td>${n.id}</td>
+							<td class="title indent text-align-left"><a href="detail?id=${n.id}">${n.title}</a></td>
+							<td>${n.writerId}</td>
+							<td>${n.regdate}</td>
+							<td>${n.hit}</td>
+						</tr>
+					</c:forEach>
 					</tbody>
 				</table>
 			</div>
@@ -270,9 +256,3 @@ ResultSet rs = st.executeQuery(sql);
     </body>
     
     </html>
-    
-    <%
-    rs.close();
-    st.close();
-    con.close();
-    %>

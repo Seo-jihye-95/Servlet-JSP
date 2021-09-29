@@ -3,10 +3,12 @@ package com.newlecture.web.controller;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -16,32 +18,32 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.newlecture.web.entity.Notice;
 
-@WebServlet("/notice/detail")
-public class NoticeDetailController extends HttpServlet {
+@WebServlet("/notice/list")
+public class NoticeListController extends HttpServlet{
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		int id = Integer.parseInt(request.getParameter("id"));
-
+		
+		List<Notice> list = new ArrayList<>();
+		
 		String url = "jdbc:oracle:thin:@localhost:1521/system";
-		String sql = "SELECT * FROM NOTICE WHERE ID=?";
+		String sql = "SELECT * FROM NOTICE";
 
 		try {
 			Class.forName("oracle.jdbc.driver.OracleDriver");
 			Connection con = DriverManager.getConnection(url,"SYSTEM","123456");
-			PreparedStatement st = con.prepareStatement(sql);
-			st.setInt(1, id);
-			ResultSet rs = st.executeQuery();	
+			Statement st = con.createStatement();
+			ResultSet rs = st.executeQuery(sql);
 
-			rs.next();
+			while(rs.next()){ 
+				int id = rs.getInt("ID");
+				String title = rs.getString("TITLE");
+				Date regdate = rs.getDate("REGDATE");
+				String writerId = rs.getString("WRITER_ID");
+				int hit = rs.getInt("HIT");
+				String content = rs.getString("CONTENT");
+				String files = rs.getString("FILES");
 
-			String title = rs.getString("TITLE");
-			Date regdate = rs.getDate("REGDATE");
-			String writerId = rs.getString("WRITER_ID");
-			int hit = rs.getInt("HIT");
-			String content = rs.getString("CONTENT");
-			String files = rs.getString("FILES");
-
-			Notice notice = new Notice(
+				Notice notice = new Notice(
 					id,
 					title,
 					regdate,
@@ -50,18 +52,13 @@ public class NoticeDetailController extends HttpServlet {
 					content,
 					files
 				);
-			
-			request.setAttribute("n", notice);
-			
-//			request.setAttribute("title", title);
-//			request.setAttribute("regdate", regdate);
-//			request.setAttribute("writerId", writerId);
-//			request.setAttribute("hit", hit);
-//			request.setAttribute("content", content);
-
+				list.add(notice);
+			}
+	
 			rs.close();
 			st.close();
 			con.close();
+			
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -69,13 +66,12 @@ public class NoticeDetailController extends HttpServlet {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-
+	
+		request.setAttribute("list", list);
 		
 		//forward
 		// 얘를 호출할거임
-		request.getRequestDispatcher("/WEB-INF/view/notice/detail.jsp").forward(request, response);
-		
-	}
+		request.getRequestDispatcher("/WEB-INF/view/notice/list.jsp").forward(request, response);;
+
+	}	
 }
